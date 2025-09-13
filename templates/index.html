@@ -4,43 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bria AI Frontend</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body>
-    <div class="container">
-        <h1>Bria AI API Integration</h1>
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-900">Bria AI API Integration</h1>
+            <p class="text-lg text-gray-600 mt-2">Enhance, Generate, and Edit Images with AI</p>
+        </header>
 
-        <!-- Prompt Enhancer -->
-        <div class="feature">
-            <h2>Prompt Enhancer</h2>
-            <div class="input-group">
-                <input type="text" id="prompt-input" placeholder="Enter a prompt to enhance">
-                <button id="enhance-btn">Enhance</button>
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-8">
+            <!-- Prompt Enhancer -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">1. Prompt Enhancer</h2>
+                <div class="relative">
+                    <input type="text" id="prompt-input" placeholder="Enter a prompt to enhance..." class="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    <button id="clear-prompt" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+                <button id="enhance-btn" class="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow">Enhance Prompt</button>
+                <div id="prompt-result-container" class="mt-4 hidden">
+                    <div id="prompt-result" class="bg-gray-50 p-4 rounded-lg text-gray-700"></div>
+                </div>
             </div>
-            <div id="prompt-result" class="result"></div>
-        </div>
 
-        <!-- Image Generator -->
-        <div class="feature">
-            <h2>Image Generator</h2>
-            <div class="input-group">
-                <input type="text" id="image-prompt-input" placeholder="Enter a prompt for image generation">
-                <button id="generate-btn">Generate Image</button>
+            <!-- Image Generator -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">2. Image Generator</h2>
+                <div class="relative">
+                    <input type="text" id="image-prompt-input" placeholder="Enter a prompt for image generation..." class="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                    <button id="clear-image-prompt" class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+                <button id="generate-btn" class="mt-4 w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition shadow">Generate Image</button>
+                <div id="image-result-container" class="mt-4 hidden">
+                    <div id="image-timer" class="text-center text-gray-500"></div>
+                    <div id="image-result" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+                </div>
             </div>
-            <div id="image-result" class="result"></div>
-        </div>
 
-        <!-- Background Remover -->
-        <div class="feature">
-            <h2>Background Remover</h2>
-            <div class="input-group">
-                <input type="file" id="bg-image-input">
-                <button id="removebg-btn">Remove Background</button>
+            <!-- Background Remover -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">3. Background Remover</h2>
+                <div class="flex items-center justify-center w-full">
+                    <label for="bg-image-input" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/></svg>
+                            <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p id="file-name" class="text-xs text-gray-500">PNG, JPG (MAX. 800x400px)</p>
+                        </div>
+                        <input id="bg-image-input" type="file" class="hidden" />
+                    </label>
+                </div>
+                <button id="removebg-btn" class="mt-4 w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition shadow">Remove Background</button>
+                <div id="removebg-result-container" class="mt-4 hidden">
+                     <div id="removebg-timer" class="text-center text-gray-500"></div>
+                    <div id="removebg-result" class="mt-4"></div>
+                </div>
             </div>
-            <div id="removebg-result" class="result"></div>
         </div>
     </div>
-
     <script src="/static/script.js"></script>
 </body>
 </html>
