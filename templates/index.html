@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bria AI Frontend</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Bria AI API Integration</h1>
+
+        <!-- Prompt Enhancer -->
+        <div class="feature">
+            <h2>Prompt Enhancer</h2>
+            <div class="input-group">
+                <input type="text" id="prompt-input" placeholder="Enter a prompt to enhance">
+                <button id="enhance-btn">Enhance</button>
+            </div>
+            <div id="prompt-result" class="result"></div>
+        </div>
+
+        <!-- Image Generator -->
+        <div class="feature">
+            <h2>Image Generator</h2>
+            <div class="input-group">
+                <input type="text" id="image-prompt-input" placeholder="Enter a prompt for image generation">
+                <button id="generate-btn">Generate Image</button>
+            </div>
+            <div id="image-result" class="result"></div>
+        </div>
+
+        <!-- Background Remover -->
+        <div class="feature">
+            <h2>Background Remover</h2>
+            <div class="input-group">
+                <input type="file" id="bg-image-input">
+                <button id="removebg-btn">Remove Background</button>
+            </div>
+            <div id="removebg-result" class="result"></div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

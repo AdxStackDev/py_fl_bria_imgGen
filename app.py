@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from prompt import process_prompt
 from image_gen import generate_image
 from removebg import remove_background
@@ -6,6 +6,10 @@ from removebg import remove_background
 app = Flask(__name__)
 
 MAX_PROMPT_LENGTH = 2000  # limit in characters
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/prompt/<string:text>', methods=['GET'])
 def gen_prompt(text):
