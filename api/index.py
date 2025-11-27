@@ -101,8 +101,5 @@ def internal_error(e):
     """Handle 500 errors"""
     return jsonify({"error": "Internal server error"}), 500
 
-# Vercel serverless function handler
-def handler(request):
-    """Vercel serverless function entry point"""
-    with app.request_context(request.environ):
-        return app.full_dispatch_request()
+# Export the app for Vercel
+# Vercel's Python runtime expects the WSGI app to be named 'app'
