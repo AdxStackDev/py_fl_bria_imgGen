@@ -28,9 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
         fileNameDisplay: document.getElementById('file-name')
     };
 
-    // Validate all required elements exist
+    // Validate all required elements exist (except optional removebg elements)
+    const optionalElements = ['removebgBtn', 'bgImageInput', 'removebgResultContainer', 'removebgTimer', 'removebgResult', 'fileNameDisplay'];
     Object.entries(elements).forEach(([key, element]) => {
-        if (!element) {
+        if (!element && !optionalElements.includes(key)) {
             console.error(`Required element not found: ${key}`);
         }
     });
@@ -210,21 +211,29 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.imagePromptInput.focus();
     });
 
-    elements.bgImageInput.addEventListener('change', () => {
-        const file = elements.bgImageInput.files[0];
-        if (file) {
-            const validation = validateFile(file);
-            if (!validation.valid) {
-                showAlert('Invalid File', validation.error, 'error');
-                elements.bgImageInput.value = '';
-                elements.fileNameDisplay.textContent = 'PNG, JPG, JPEG (Max 10MB)';
+    if (elements.bgImageInput) {
+        elements.bgImageInput.addEventListener('change', () => {
+            const file = elements.bgImageInput.files[0];
+            if (file) {
+                const validation = validateFile(file);
+                if (!validation.valid) {
+                    showAlert('Invalid File', validation.error, 'error');
+                    elements.bgImageInput.value = '';
+                    if (elements.fileNameDisplay) {
+                        elements.fileNameDisplay.textContent = 'PNG, JPG, JPEG (Max 10MB)';
+                    }
+                } else {
+                    if (elements.fileNameDisplay) {
+                        elements.fileNameDisplay.textContent = file.name;
+                    }
+                }
             } else {
-                elements.fileNameDisplay.textContent = file.name;
+                if (elements.fileNameDisplay) {
+                    elements.fileNameDisplay.textContent = 'PNG, JPG, JPEG (Max 10MB)';
+                }
             }
-        } else {
-            elements.fileNameDisplay.textContent = 'PNG, JPG, JPEG (Max 10MB)';
-        }
-    });
+        });
+    }
 
     // --- Feature 1: Prompt Enhancer ---
     elements.enhanceBtn.addEventListener('click', async () => {
@@ -250,13 +259,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const originalEscaped = escapeHtml(data.original_prompt || text);
             const enhancedEscaped = escapeHtml(data.enhanced_prompt || 'No enhancement available');
+            const enhancedPrompt = data.enhanced_prompt || 'No enhancement available';
 
             elements.promptResult.innerHTML = `
                 <p class="mb-3"><strong class="text-purple-300">Original:</strong></p>
                 <p class="text-gray-200 mb-4 pl-4 border-l-2 border-purple-500">${originalEscaped}</p>
-                <p class="mb-3"><strong class="text-pink-300">Enhanced:</strong></p>
+                <div class="flex items-center justify-between mb-3">
+                    <strong class="text-pink-300">Enhanced:</strong>
+                    <button id="copy-enhanced-btn" class="px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                        📋 Copy
+                    </button>
+                </div>
                 <p class="text-gray-100 pl-4 border-l-2 border-pink-500">${enhancedEscaped}</p>
             `;
+
+            // Add copy functionality
+            const copyBtn = document.getElementById('copy-enhanced-btn');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(enhancedPrompt);
+                        copyBtn.innerHTML = '✅ Copied!';
+                        copyBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '📋 Copy';
+                            copyBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        }, 2000);
+                    } catch (error) {
+                        console.error('Failed to copy:', error);
+                        showAlert('Copy Failed', 'Could not copy to clipboard. Please try again.', 'error');
+                    }
+                });
+            }
         } catch (error) {
             console.error('Prompt enhancement error:', error);
             elements.promptResult.innerHTML = `<p class="text-red-400">❌ Error: ${escapeHtml(error.message)}</p>`;
@@ -293,24 +328,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.image_urls && data.image_urls.length > 0) {
                 data.image_urls.forEach((url, index) => {
                     const imgContainer = document.createElement('div');
-                    imgContainer.className = 'relative p-4 rounded-2xl animate-fade-in';
-                    imgContainer.style.cssText = 'background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); animation-delay: ' + (index * 0.1) + 's;';
+                    imgContainer.className = 'relative group rounded-xl overflow-hidden animate-fade-in';
+                    imgContainer.style.cssText = 'background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); animation-delay: ' + (index * 0.1) + 's; transition: all 0.3s ease;';
+
+                    // Add hover effect
+                    imgContainer.addEventListener('mouseenter', () => {
+                        imgContainer.style.transform = 'scale(1.02)';
+                        imgContainer.style.boxShadow = '0 8px 32px rgba(99, 102, 241, 0.3)';
+                    });
+                    imgContainer.addEventListener('mouseleave', () => {
+                        imgContainer.style.transform = 'scale(1)';
+                        imgContainer.style.boxShadow = 'none';
+                    });
 
                     const img = document.createElement('img');
                     img.src = url;
                     img.alt = `Generated image ${index + 1}`;
-                    img.className = 'w-full rounded-xl shadow-lg';
-                    img.style.cssText = 'border: 1px solid rgba(255, 255, 255, 0.1);';
+                    img.className = 'w-full h-auto aspect-square object-cover';
                     img.loading = 'lazy';
 
                     const downloadBtn = createDownloadButton(url);
+                    downloadBtn.className = 'absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 px-4 py-2 rounded-lg font-semibold text-sm';
+                    downloadBtn.style.cssText = 'background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none;';
 
                     imgContainer.appendChild(img);
                     imgContainer.appendChild(downloadBtn);
                     elements.imageResult.appendChild(imgContainer);
                 });
             } else {
-                elements.imageResult.innerHTML = '<p class="text-gray-300">No images were generated. Please try a different prompt.</p>';
+                elements.imageResult.innerHTML = '<p class="text-gray-300 col-span-2 text-center">No images were generated. Please try a different prompt.</p>';
             }
         } catch (error) {
             console.error('Image generation error:', error);
@@ -322,64 +368,66 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Feature 3: Background Remover ---
-    elements.removebgBtn.addEventListener('click', async () => {
-        const imageFile = elements.bgImageInput.files[0];
+    if (elements.removebgBtn) {
+        elements.removebgBtn.addEventListener('click', async () => {
+            const imageFile = elements.bgImageInput.files[0];
 
-        const validation = validateFile(imageFile);
-        if (!validation.valid) {
-            showAlert('Invalid File', validation.error, 'warning');
-            return;
-        }
-
-        elements.removebgResultContainer.classList.remove('hidden');
-        elements.removebgResult.innerHTML = '';
-        startTimer('removeBg', elements.removebgTimer);
-        setButtonLoading(elements.removebgBtn, true);
-
-        const formData = new FormData();
-        formData.append('image', imageFile);
-
-        try {
-            const response = await fetchWithTimeout('/removebg', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
-
-            stopTimer('removeBg', elements.removebgTimer);
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to remove background.');
+            const validation = validateFile(imageFile);
+            if (!validation.valid) {
+                showAlert('Invalid File', validation.error, 'warning');
+                return;
             }
 
-            if (data.url) {
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'relative p-4 rounded-2xl';
-                imgContainer.style.cssText = 'background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);';
+            elements.removebgResultContainer.classList.remove('hidden');
+            elements.removebgResult.innerHTML = '';
+            startTimer('removeBg', elements.removebgTimer);
+            setButtonLoading(elements.removebgBtn, true);
 
-                const img = document.createElement('img');
-                img.src = data.url;
-                img.alt = 'Background removed image';
-                img.className = 'w-full rounded-xl shadow-lg';
-                img.style.cssText = 'border: 1px solid rgba(255, 255, 255, 0.1);';
-                img.loading = 'lazy';
+            const formData = new FormData();
+            formData.append('image', imageFile);
 
-                const downloadBtn = createDownloadButton(data.url);
+            try {
+                const response = await fetchWithTimeout('/removebg', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
 
-                imgContainer.appendChild(img);
-                imgContainer.appendChild(downloadBtn);
-                elements.removebgResult.appendChild(imgContainer);
-            } else {
-                elements.removebgResult.innerHTML = '<p class="text-gray-300">Could not process the image. Please try again.</p>';
+                stopTimer('removeBg', elements.removebgTimer);
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to remove background.');
+                }
+
+                if (data.url) {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative p-4 rounded-2xl';
+                    imgContainer.style.cssText = 'background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);';
+
+                    const img = document.createElement('img');
+                    img.src = data.url;
+                    img.alt = 'Background removed image';
+                    img.className = 'w-full rounded-xl shadow-lg';
+                    img.style.cssText = 'border: 1px solid rgba(255, 255, 255, 0.1);';
+                    img.loading = 'lazy';
+
+                    const downloadBtn = createDownloadButton(data.url);
+
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(downloadBtn);
+                    elements.removebgResult.appendChild(imgContainer);
+                } else {
+                    elements.removebgResult.innerHTML = '<p class="text-gray-300">Could not process the image. Please try again.</p>';
+                }
+            } catch (error) {
+                console.error('Background removal error:', error);
+                stopTimer('removeBg', elements.removebgTimer);
+                elements.removebgResult.innerHTML = `<p class="text-red-400">❌ Error: ${escapeHtml(error.message)}</p>`;
+            } finally {
+                setButtonLoading(elements.removebgBtn, false);
             }
-        } catch (error) {
-            console.error('Background removal error:', error);
-            stopTimer('removeBg', elements.removebgTimer);
-            elements.removebgResult.innerHTML = `<p class="text-red-400">❌ Error: ${escapeHtml(error.message)}</p>`;
-        } finally {
-            setButtonLoading(elements.removebgBtn, false);
-        }
-    });
+        });
+    }
 
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
