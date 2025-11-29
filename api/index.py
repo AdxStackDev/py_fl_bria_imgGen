@@ -1,6 +1,11 @@
 from flask import Flask, request, jsonify, render_template
 import sys
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Add parent directory to path to import modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -29,12 +34,14 @@ def gen_prompt(text):
                 "error": f"Prompt too long! Max length is {MAX_PROMPT_LENGTH} characters."
             }), 400
 
+        logger.info(f"Enhancing prompt: {text[:50]}...")
         enhanced_prompt = process_prompt(text)
         return jsonify({
             "original_prompt": text,
             "enhanced_prompt": enhanced_prompt
         })
     except Exception as e:
+        logger.error(f"Error enhancing prompt: {e}")
         return jsonify({
             "error": "Failed to enhance prompt. Please try again.",
             "details": str(e)
@@ -49,12 +56,14 @@ def gen_image(text):
                 "error": f"Prompt too long! Max length is {MAX_PROMPT_LENGTH} characters."
             }), 400
 
+        logger.info(f"Generating image for prompt: {text[:50]}...")
         image_urls = generate_image(text)
         return jsonify({
             "prompt": text,
             "image_urls": image_urls
         })
     except Exception as e:
+        logger.error(f"Error generating image: {e}")
         return jsonify({
             "error": "Failed to generate image. Please try again.",
             "details": str(e)
@@ -86,6 +95,7 @@ def removebg():
 
         return jsonify(result)
     except Exception as e:
+        logger.error(f"Error removing background: {e}")
         return jsonify({
             "error": "Failed to remove background. Please try again.",
             "details": str(e)
@@ -99,6 +109,7 @@ def not_found(e):
 @app.errorhandler(500)
 def internal_error(e):
     """Handle 500 errors"""
+    logger.error(f"Internal server error: {e}")
     return jsonify({"error": "Internal server error"}), 500
 
 # Export the app for Vercel
